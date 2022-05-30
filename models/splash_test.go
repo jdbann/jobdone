@@ -12,9 +12,7 @@ func TestSplash_Init(t *testing.T) {
 
 	cmd := splash.Init()
 
-	if cmd != nil {
-		t.Errorf("Expected %#v, got %#v", nil, cmd)
-	}
+	assertCmdsEqual(t, nil, cmd)
 }
 
 func TestSplash_Update(t *testing.T) {
@@ -25,7 +23,7 @@ func TestSplash_Update(t *testing.T) {
 		wantView string
 	}{
 		{
-			name:    "nil",
+			name:    "nil messages are skipped",
 			msg:     nil,
 			wantCmd: nil,
 			wantView: "" +
@@ -39,7 +37,7 @@ func TestSplash_Update(t *testing.T) {
 				"        ",
 		},
 		{
-			name:    "tea.WindowSizeMsg",
+			name:    "window resize adjusts view sizing",
 			msg:     tea.WindowSizeMsg{Height: 10, Width: 10},
 			wantCmd: nil,
 			wantView: "" +
@@ -62,19 +60,8 @@ func TestSplash_Update(t *testing.T) {
 			updatedSplash, cmd := splash.Update(tt.msg)
 			view := stripAnsi(updatedSplash.View())
 
-			if view != tt.wantView {
-				t.Errorf("\nExpected: %q\nGot:      %q", tt.wantView, view)
-			}
-
-			if cmd == nil && tt.wantCmd == nil {
-				return
-			}
-
-			if (cmd != nil && tt.wantCmd != nil) && (tt.wantCmd() != cmd()) {
-				t.Errorf("\nExpected: %#v\nGot:      %#v", tt.wantCmd, cmd)
-			} else {
-				t.Errorf("\nExpected: %#v\nGot:      %#v", tt.wantCmd, cmd)
-			}
+			assertViewsEqual(t, tt.wantView, view)
+			assertCmdsEqual(t, tt.wantCmd, cmd)
 		})
 	}
 }
