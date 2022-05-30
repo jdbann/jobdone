@@ -6,22 +6,39 @@ import (
 	"jobdone.emailaddress.horse/utils/colors"
 )
 
-const title = `         _/    _/_/    _/_/_/        _/_/_/      _/_/    _/      _/  _/_/_/_/
-        _/  _/    _/  _/    _/      _/    _/  _/    _/  _/_/    _/  _/
-       _/  _/    _/  _/_/_/        _/    _/  _/    _/  _/  _/  _/  _/_/_/
-_/    _/  _/    _/  _/    _/      _/    _/  _/    _/  _/    _/_/  _/
- _/_/      _/_/    _/_/_/        _/_/_/      _/_/    _/      _/  _/_/_/_/`
+const splashTitle = "" +
+	"         _/    _/_/    _/_/_/        _/_/_/      _/_/    _/      _/  _/_/_/_/\n" +
+	"        _/  _/    _/  _/    _/      _/    _/  _/    _/  _/_/    _/  _/       \n" +
+	"       _/  _/    _/  _/_/_/        _/    _/  _/    _/  _/  _/  _/  _/_/_/    \n" +
+	"_/    _/  _/    _/  _/    _/      _/    _/  _/    _/  _/    _/_/  _/         \n" +
+	" _/_/      _/_/    _/_/_/        _/_/_/      _/_/    _/      _/  _/_/_/_/    "
 
-const subtitle = "You write the app, we'll do the hard work."
+const splashSubtitle = "You write the app, we'll do the hard work."
 
 var _ tea.Model = Splash{}
 
 type Splash struct {
-	height, width int
+	height, width   int
+	title, subtitle string
 }
 
-func NewSplash() Splash {
-	return Splash{}
+type SplashParams struct {
+	Title, Subtitle string
+}
+
+func NewSplash(params SplashParams) Splash {
+	if params.Title == "" {
+		params.Title = splashTitle
+	}
+
+	if params.Subtitle == "" {
+		params.Subtitle = splashSubtitle
+	}
+
+	return Splash{
+		title:    params.Title,
+		subtitle: params.Subtitle,
+	}
 }
 
 func (s Splash) Init() tea.Cmd {
@@ -42,7 +59,7 @@ func (s Splash) View() string {
 		Foreground(colors.Indigo12).
 		Background(colors.Indigo2).
 		Padding(2, 0, 2, 0).
-		Render(title)
+		Render(s.title)
 
 	titleBar := lipgloss.PlaceHorizontal(
 		s.width,
@@ -55,7 +72,7 @@ func (s Splash) View() string {
 		Foreground(colors.Indigo11).
 		Background(colors.Indigo2).
 		Padding(0, 0, 2, 0).
-		Render(subtitle)
+		Render(s.subtitle)
 
 	subtitleBar := lipgloss.PlaceHorizontal(
 		s.width,

@@ -24,7 +24,7 @@ type app struct {
 
 func newApp() app {
 	return app{
-		splash: models.NewSplash(),
+		splash: models.NewSplash(models.SplashParams{}),
 	}
 }
 
