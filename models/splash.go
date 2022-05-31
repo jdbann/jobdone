@@ -3,6 +3,7 @@ package models
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"go.uber.org/zap"
 	"jobdone.emailaddress.horse/utils/colors"
 )
 
@@ -18,15 +19,23 @@ const splashSubtitle = "You write the app, we'll do the hard work."
 var _ tea.Model = Splash{}
 
 type Splash struct {
+	logger          *zap.Logger
 	height, width   int
 	title, subtitle string
 }
 
 type SplashParams struct {
+	Logger          *zap.Logger
 	Title, Subtitle string
 }
 
 func NewSplash(params SplashParams) Splash {
+	if params.Logger == nil {
+		params.Logger = zap.NewNop()
+	}
+
+	logger := params.Logger.Named("Splash")
+
 	if params.Title == "" {
 		params.Title = splashTitle
 	}
@@ -36,6 +45,7 @@ func NewSplash(params SplashParams) Splash {
 	}
 
 	return Splash{
+		logger:   logger,
 		title:    params.Title,
 		subtitle: params.Subtitle,
 	}
@@ -48,6 +58,10 @@ func (s Splash) Init() tea.Cmd {
 func (s Splash) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
+		s.logger.Debug(
+			"Received window resize message",
+			zap.Object("tea.Msg", windowSizeMsg(msg)),
+		)
 		s.height, s.width = msg.Height, msg.Width
 	}
 

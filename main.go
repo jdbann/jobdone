@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"jobdone.emailaddress.horse/models"
+	"jobdone.emailaddress.horse/cmd"
 )
 
 func main() {
-	p := tea.NewProgram(models.NewApp(models.AppParams{}), tea.WithAltScreen())
-	if err := p.Start(); err != nil {
+	err := cmd.Start(os.Args[1:])
+	if err != nil {
 		fmt.Printf("OH NO! There has been an error: %v", err)
 		os.Exit(1)
 	}
