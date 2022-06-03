@@ -2,17 +2,20 @@ package models_test
 
 import (
 	"testing"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"jobdone.emailaddress.horse/models"
 )
 
 func TestSplash_Init(t *testing.T) {
-	splash := models.NewSplash(models.SplashParams{})
+	splash := models.NewSplash(models.SplashParams{
+		Duration: time.Nanosecond * 1,
+	})
 
 	cmd := splash.Init()
 
-	assertCmdsEqual(t, nil, cmd)
+	assertCmdsEqual(t, models.DismissSplashCmd(0), cmd)
 }
 
 func TestSplash_Update(t *testing.T) {

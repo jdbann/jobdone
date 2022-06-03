@@ -8,13 +8,19 @@ import (
 var _ tea.Model = App{}
 
 type App struct {
+	showSplash bool
+
+	healthcheck tea.Model
+	splash      tea.Model
+
 	logger *zap.Logger
-	splash tea.Model
 }
 
 type AppParams struct {
+	Healthcheck tea.Model
+	Splash      tea.Model
+
 	Logger *zap.Logger
-	Splash tea.Model
 }
 
 func NewApp(params AppParams) App {
@@ -24,6 +30,12 @@ func NewApp(params AppParams) App {
 
 	logger := params.Logger.Named("App")
 
+	if params.Healthcheck == nil {
+		params.Healthcheck = NewHealthcheck(HealthcheckParams{
+			Logger: logger,
+		})
+	}
+
 	if params.Splash == nil {
 		params.Splash = NewSplash(SplashParams{
 			Logger: logger,
@@ -31,13 +43,21 @@ func NewApp(params AppParams) App {
 	}
 
 	return App{
+		showSplash: true,
+
+		healthcheck: params.Healthcheck,
+		splash:      params.Splash,
+
 		logger: logger,
-		splash: params.Splash,
 	}
 }
 
 func (a App) Init() tea.Cmd {
-	return nil
+	a.logger.Debug("Initialised")
+	return tea.Batch(
+		a.healthcheck.Init(),
+		a.splash.Init(),
+	)
 }
 
 func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -56,15 +76,32 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			)
 			return a, tea.Quit
 		}
+
+	case SplashCompleteMsg:
+		a.showSplash = false
+		a.logger.Debug(
+			"Received splash complete message",
+			zap.Object("tea.Msg", msg),
+		)
 	}
 
 	// Pass message to nested models
 	var cmd tea.Cmd
-	a.splash, cmd = a.splash.Update(msg)
+	a.healthcheck, cmd = a.healthcheck.Update(msg)
+
+	if a.showSplash {
+		var splashCmd tea.Cmd
+		a.splash, splashCmd = a.splash.Update(msg)
+		cmd = tea.Batch(cmd, splashCmd)
+	}
 
 	return a, cmd
 }
 
 func (a App) View() string {
-	return a.splash.View()
+	if a.showSplash {
+		return a.splash.View()
+	}
+
+	return a.healthcheck.View()
 }

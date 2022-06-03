@@ -16,3 +16,21 @@ var (
 	Indigo11 = lipgloss.AdaptiveColor{Light: "#3451b2", Dark: "#849dff"}
 	Indigo12 = lipgloss.AdaptiveColor{Light: "#101d46", Dark: "#eef1fd"}
 )
+
+var Indigo = scale{
+	Name: "Indigo",
+	Steps: []step{
+		{"Indigo1", Indigo1},
+		{"Indigo2", Indigo2},
+		{"Indigo3", Indigo3},
+		{"Indigo4", Indigo4},
+		{"Indigo5", Indigo5},
+		{"Indigo6", Indigo6},
+		{"Indigo7", Indigo7},
+		{"Indigo8", Indigo8},
+		{"Indigo9", Indigo9},
+		{"Indigo10", Indigo10},
+		{"Indigo11", Indigo11},
+		{"Indigo12", Indigo12},
+	},
+}

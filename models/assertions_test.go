@@ -7,24 +7,28 @@ import (
 )
 
 func assertViewsEqual(t *testing.T, a, b string) {
+	t.Helper()
 	if a != b {
 		t.Errorf("\nExpected: %q\nGot:      %q", a, b)
 	}
 }
 
 func assertCmdsEqual(t *testing.T, a, b tea.Cmd) {
+	t.Helper()
 	if !cmdsEqual(a, b) {
 		t.Errorf("\nExpected: %#v\nGot:      %#v", a, b)
 	}
 }
 
 func assertMsgEqual(t *testing.T, a, b tea.Msg) {
+	t.Helper()
 	if a != b {
 		t.Errorf("\nExpected: %#v\nGot:      %#v", a, b)
 	}
 }
 
 func assertMsgsEqual(t *testing.T, a, b []tea.Msg) {
+	t.Helper()
 	if len(a) != len(b) {
 		t.Errorf("Expected %d msgs, got %d msgs", len(a), len(b))
 		return
