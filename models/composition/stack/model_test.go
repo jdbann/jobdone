@@ -27,6 +27,12 @@ func TestUpdate(t *testing.T) {
 			wantCmd:  nil,
 			wantView: "",
 		},
+		{
+			name:     "window resize adjusts view sizing",
+			msg:      tea.WindowSizeMsg{Height: 2, Width: 2},
+			wantCmd:  nil,
+			wantView: "  \n  ",
+		},
 	}
 
 	for _, tt := range tests {
