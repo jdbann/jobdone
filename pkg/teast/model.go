@@ -2,9 +2,14 @@ package teast
 
 import tea "github.com/charmbracelet/bubbletea"
 
-// FakeModel builds a simple tea.Model for injecting into tests. Prepare it with
-// specific behaviour by passing various FakeModelOptions
-func FakeModel(opts ...FakeModelOption) *fakeModel {
+type FakeModel interface {
+	tea.Model
+	Msgs() []tea.Msg
+}
+
+// NewFakeModel builds a simple tea.Model for injecting into tests. Prepare it
+// with specific behaviour by passing various FakeModelOptions
+func NewFakeModel(opts ...FakeModelOption) *fakeModel {
 	f := &fakeModel{}
 
 	for _, opt := range opts {
