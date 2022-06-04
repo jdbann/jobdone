@@ -10,8 +10,8 @@ import (
 
 func TestApp_Init(t *testing.T) {
 	app := models.NewApp(models.AppParams{
-		Healthcheck: teast.FakeModel(teast.InitReturns(teast.FakeCmd("Healthcheck init"))),
-		Splash:      teast.FakeModel(teast.InitReturns(teast.FakeCmd("Splash init"))),
+		Healthcheck: teast.NewFakeModel(teast.InitReturns(teast.FakeCmd("Healthcheck init"))),
+		Splash:      teast.NewFakeModel(teast.InitReturns(teast.FakeCmd("Splash init"))),
 	})
 
 	cmd := app.Init()
@@ -89,8 +89,8 @@ func TestApp_Update(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fakeHealthcheck := teast.FakeModel(tt.healthcheckOptions...)
-			fakeSplash := teast.FakeModel(tt.splashOptions...)
+			fakeHealthcheck := teast.NewFakeModel(tt.healthcheckOptions...)
+			fakeSplash := teast.NewFakeModel(tt.splashOptions...)
 			app := models.NewApp(models.AppParams{
 				Healthcheck: fakeHealthcheck,
 				Splash:      fakeSplash,
