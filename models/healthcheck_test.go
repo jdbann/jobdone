@@ -8,6 +8,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"jobdone.emailaddress.horse/models"
+	"jobdone.emailaddress.horse/pkg/teast"
 )
 
 var fakeHealthcheckError = errors.New("fake error")
@@ -30,7 +31,7 @@ func TestHealthcheck_Init(t *testing.T) {
 
 	cmd := healthcheck.Init()
 
-	assertCmdsEqual(t, func() tea.Msg { return models.CheckHealthCmd(client)(time.Now()) }, cmd)
+	teast.AssertCmdsEqual(t, func() tea.Msg { return models.CheckHealthCmd(client)(time.Now()) }, cmd)
 }
 
 func TestHealthcheck_Update(t *testing.T) {
@@ -69,10 +70,9 @@ func TestHealthcheck_Update(t *testing.T) {
 				Client:         tt.client,
 			})
 			updatedHealthcheck, cmd := healthcheck.Update(tt.msg)
-			view := stripAnsi(updatedHealthcheck.View())
 
-			assertViewsEqual(t, tt.wantView, view)
-			assertCmdsEqual(t, tt.wantCmd, cmd)
+			teast.AssertViewsEqual(t, tt.wantView, updatedHealthcheck.View())
+			teast.AssertCmdsEqual(t, tt.wantCmd, cmd)
 		})
 	}
 }
@@ -99,7 +99,7 @@ func TestCheckHealthCmd(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			msg := models.CheckHealthCmd(tt.client)(time.Now())
 
-			assertMsgEqual(t, tt.wantMsg, msg)
+			teast.AssertMsgEqual(t, tt.wantMsg, msg)
 		})
 	}
 }

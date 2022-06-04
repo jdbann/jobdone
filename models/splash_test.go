@@ -6,6 +6,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"jobdone.emailaddress.horse/models"
+	"jobdone.emailaddress.horse/pkg/teast"
 )
 
 func TestSplash_Init(t *testing.T) {
@@ -15,7 +16,7 @@ func TestSplash_Init(t *testing.T) {
 
 	cmd := splash.Init()
 
-	assertCmdsEqual(t, models.DismissSplashCmd(0), cmd)
+	teast.AssertCmdsEqual(t, models.DismissSplashCmd(0), cmd)
 }
 
 func TestSplash_Update(t *testing.T) {
@@ -61,10 +62,9 @@ func TestSplash_Update(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			splash := models.NewSplash(models.SplashParams{Title: "Title", Subtitle: "Subtitle"})
 			updatedSplash, cmd := splash.Update(tt.msg)
-			view := stripAnsi(updatedSplash.View())
 
-			assertViewsEqual(t, tt.wantView, view)
-			assertCmdsEqual(t, tt.wantCmd, cmd)
+			teast.AssertViewsEqual(t, tt.wantView, updatedSplash.View())
+			teast.AssertCmdsEqual(t, tt.wantCmd, cmd)
 		})
 	}
 }

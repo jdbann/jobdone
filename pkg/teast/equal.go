@@ -1,23 +1,14 @@
-package models_test
+package teast
 
 import (
 	"reflect"
-	"regexp"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-var ansiCodes = regexp.MustCompile(`\x1b\[[\d;]m`)
-
-// stripAnsi removes ANSI codes from provided string. Helpful for comparing
-// returned values from View() calls on tea.Model instances.
-func stripAnsi(s string) string {
-	return ansiCodes.ReplaceAllString(s, "")
-}
-
-// cmdsEqual checks whether the provided tea.Cmd functions are both nil or both
+// CmdsEqual checks whether the provided tea.Cmd functions are both nil or both
 // return the same value.
-func cmdsEqual(a, b tea.Cmd) bool {
+func CmdsEqual(a, b tea.Cmd) bool {
 	// If both are nil, commands are equal
 	if a == nil && b == nil {
 		return true
@@ -63,7 +54,7 @@ func batchCmdsEqual(a, b tea.Msg) bool {
 
 	// Check that the commands in the batches are equal
 	for i := range aBatch {
-		if !cmdsEqual(aBatch[i], bBatch[i]) {
+		if !CmdsEqual(aBatch[i], bBatch[i]) {
 			return false
 		}
 	}
