@@ -13,11 +13,6 @@ type Stack struct {
 	slots []Slot
 }
 
-type Slot struct {
-	Model     tea.Model
-	FixedSize bool
-}
-
 type Params struct {
 	Slots []Slot
 }
@@ -39,9 +34,26 @@ func (m Stack) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		remainingSlots, remainingHeight := float64(len(m.slots)), float64(msg.Height)
+
 		for i, slot := range m.slots {
+			if !slot.fixedSize {
+				continue
+			}
+
+			slotHeight := lipgloss.Height(slot.model.View())
+			m.slots[i].model, cmd = slot.model.Update(tea.WindowSizeMsg{Height: slotHeight, Width: msg.Width})
+			remainingSlots--
+			remainingHeight -= float64(slotHeight)
+			slotCmds = append(slotCmds, cmd)
+		}
+
+		for i, slot := range m.slots {
+			if slot.fixedSize {
+				continue
+			}
+
 			slotHeight := int(math.Round(remainingHeight / remainingSlots))
-			m.slots[i].Model, cmd = slot.Model.Update(tea.WindowSizeMsg{Height: slotHeight, Width: msg.Width})
+			m.slots[i].model, cmd = slot.model.Update(tea.WindowSizeMsg{Height: slotHeight, Width: msg.Width})
 			remainingSlots--
 			remainingHeight -= float64(slotHeight)
 			slotCmds = append(slotCmds, cmd)
@@ -56,7 +68,7 @@ func (m Stack) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Stack) View() string {
 	var views []string
 	for _, slot := range m.slots {
-		views = append(views, slot.Model.View())
+		views = append(views, slot.model.View())
 	}
 	return lipgloss.JoinVertical(lipgloss.Left, views...)
 }
