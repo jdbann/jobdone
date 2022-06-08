@@ -10,8 +10,8 @@ import (
 
 func TestApp_Init(t *testing.T) {
 	app := models.NewApp(models.AppParams{
-		Healthcheck: teast.NewFakeModel(teast.InitReturns(teast.FakeCmd("Healthcheck init"))),
-		Splash:      teast.NewFakeModel(teast.InitReturns(teast.FakeCmd("Splash init"))),
+		Healthcheck: teast.NewFakeModel(t, teast.InitReturns(teast.FakeCmd("Healthcheck init"))),
+		Splash:      teast.NewFakeModel(t, teast.InitReturns(teast.FakeCmd("Splash init"))),
 	})
 
 	cmd := app.Init()
@@ -21,24 +21,20 @@ func TestApp_Init(t *testing.T) {
 
 func TestApp_Update(t *testing.T) {
 	tests := []struct {
-		name                string
-		healthcheckOptions  []teast.FakeModelOption
-		splashOptions       []teast.FakeModelOption
-		msg                 tea.Msg
-		wantCmd             tea.Cmd
-		wantView            string
-		wantHealthcheckMsgs []tea.Msg
-		wantSplashMsgs      []tea.Msg
+		name               string
+		healthcheckOptions []teast.FakeModelOption
+		splashOptions      []teast.FakeModelOption
+		msg                tea.Msg
+		wantCmd            tea.Cmd
+		wantView           string
 	}{
 		{
-			name:                "nil messages are skipped",
-			healthcheckOptions:  []teast.FakeModelOption{teast.ViewReturns("Fake Healthcheck")},
-			splashOptions:       []teast.FakeModelOption{teast.ViewReturns("Fake Splash")},
-			msg:                 nil,
-			wantCmd:             nil,
-			wantView:            "Fake Splash",
-			wantHealthcheckMsgs: []tea.Msg{},
-			wantSplashMsgs:      []tea.Msg{},
+			name:               "nil messages are skipped",
+			healthcheckOptions: []teast.FakeModelOption{teast.ViewReturns("Fake Healthcheck")},
+			splashOptions:      []teast.FakeModelOption{teast.ViewReturns("Fake Splash")},
+			msg:                nil,
+			wantCmd:            nil,
+			wantView:           "Fake Splash",
 		},
 		{
 			name:               "ctrl+c quits immediately",
@@ -47,10 +43,8 @@ func TestApp_Update(t *testing.T) {
 			msg: tea.KeyMsg{
 				Type: tea.KeyCtrlC,
 			},
-			wantCmd:             tea.Quit,
-			wantView:            "Fake Splash",
-			wantHealthcheckMsgs: []tea.Msg{},
-			wantSplashMsgs:      []tea.Msg{},
+			wantCmd:  tea.Quit,
+			wantView: "Fake Splash",
 		},
 		{
 			name:               "q quits immediately",
@@ -60,37 +54,42 @@ func TestApp_Update(t *testing.T) {
 				Type:  tea.KeyRunes,
 				Runes: []rune{'q'},
 			},
-			wantCmd:             tea.Quit,
-			wantView:            "Fake Splash",
-			wantHealthcheckMsgs: []tea.Msg{},
-			wantSplashMsgs:      []tea.Msg{},
+			wantCmd:  tea.Quit,
+			wantView: "Fake Splash",
 		},
 		{
-			name:                "splash complete switches to healthcheck",
-			healthcheckOptions:  []teast.FakeModelOption{teast.ViewReturns("Fake Healthcheck")},
-			splashOptions:       []teast.FakeModelOption{teast.ViewReturns("Fake Splash")},
-			msg:                 models.SplashCompleteMsg{},
-			wantCmd:             nil,
-			wantView:            "Fake Healthcheck",
-			wantHealthcheckMsgs: []tea.Msg{models.SplashCompleteMsg{}},
-			wantSplashMsgs:      []tea.Msg{},
+			name: "splash complete switches to healthcheck",
+			healthcheckOptions: []teast.FakeModelOption{
+				teast.ViewReturns("Fake Healthcheck"),
+				teast.ExpectMessages(models.SplashCompleteMsg{}),
+			},
+			splashOptions: []teast.FakeModelOption{teast.ViewReturns("Fake Splash")},
+			msg:           models.SplashCompleteMsg{},
+			wantCmd:       nil,
+			wantView:      "Fake Healthcheck",
 		},
 		{
-			name:                "messages are passed to nested models and commands returned",
-			healthcheckOptions:  []teast.FakeModelOption{teast.UpdateReturns(teast.FakeCmd("Message from Healthcheck")), teast.ViewReturns("Fake Healthcheck")},
-			splashOptions:       []teast.FakeModelOption{teast.UpdateReturns(teast.FakeCmd("Message from Splash")), teast.ViewReturns("Fake Splash")},
-			msg:                 teast.FakeMsg{},
-			wantCmd:             tea.Batch(teast.FakeCmd("Message from Healthcheck"), teast.FakeCmd("Message from Splash")),
-			wantView:            "Fake Splash",
-			wantHealthcheckMsgs: []tea.Msg{teast.FakeMsg{}},
-			wantSplashMsgs:      []tea.Msg{teast.FakeMsg{}},
+			name: "messages are passed to nested models and commands returned",
+			healthcheckOptions: []teast.FakeModelOption{
+				teast.UpdateReturns(teast.FakeCmd("Message from Healthcheck")),
+				teast.ViewReturns("Fake Healthcheck"),
+				teast.ExpectMessages(teast.FakeMsg{}),
+			},
+			splashOptions: []teast.FakeModelOption{
+				teast.UpdateReturns(teast.FakeCmd("Message from Splash")),
+				teast.ViewReturns("Fake Splash"),
+				teast.ExpectMessages(teast.FakeMsg{}),
+			},
+			msg:      teast.FakeMsg{},
+			wantCmd:  tea.Batch(teast.FakeCmd("Message from Healthcheck"), teast.FakeCmd("Message from Splash")),
+			wantView: "Fake Splash",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fakeHealthcheck := teast.NewFakeModel(tt.healthcheckOptions...)
-			fakeSplash := teast.NewFakeModel(tt.splashOptions...)
+			fakeHealthcheck := teast.NewFakeModel(t, tt.healthcheckOptions...)
+			fakeSplash := teast.NewFakeModel(t, tt.splashOptions...)
 			app := models.NewApp(models.AppParams{
 				Healthcheck: fakeHealthcheck,
 				Splash:      fakeSplash,
@@ -99,8 +98,6 @@ func TestApp_Update(t *testing.T) {
 
 			teast.AssertViewsEqual(t, tt.wantView, updatedApp.View())
 			teast.AssertCmdsEqual(t, tt.wantCmd, cmd)
-			teast.AssertMsgsEqual(t, tt.wantHealthcheckMsgs, fakeHealthcheck.Msgs())
-			teast.AssertMsgsEqual(t, tt.wantSplashMsgs, fakeSplash.Msgs())
 		})
 	}
 }

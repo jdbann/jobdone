@@ -1,28 +1,32 @@
 package teast
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	"testing"
 
-type FakeModel interface {
-	tea.Model
-	Msgs() []tea.Msg
-}
+	tea "github.com/charmbracelet/bubbletea"
+)
 
 // NewFakeModel builds a simple tea.Model for injecting into tests. Prepare it
 // with specific behaviour by passing various FakeModelOptions
-func NewFakeModel(opts ...FakeModelOption) *fakeModel {
+func NewFakeModel(t *testing.T, opts ...FakeModelOption) tea.Model {
 	f := &fakeModel{}
 
 	for _, opt := range opts {
 		opt(f)
 	}
 
+	t.Cleanup(func() {
+		AssertMsgsEqual(t, f.expectedMsgs, f.msgs)
+	})
+
 	return f
 }
 
 type fakeModel struct {
-	initCmd   tea.Cmd
-	updateCmd tea.Cmd
-	view      string
+	initCmd      tea.Cmd
+	updateCmd    tea.Cmd
+	view         string
+	expectedMsgs []tea.Msg
 
 	msgs []tea.Msg
 }
@@ -47,6 +51,12 @@ func ViewReturns(view string) FakeModelOption {
 	}
 }
 
+func ExpectMessages(msgs ...tea.Msg) FakeModelOption {
+	return func(f *fakeModel) {
+		f.expectedMsgs = msgs
+	}
+}
+
 func (f *fakeModel) Init() tea.Cmd {
 	return f.initCmd
 }
@@ -58,10 +68,4 @@ func (f *fakeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (f *fakeModel) View() string {
 	return f.view
-}
-
-// Msgs returns the messages which have been passed to the fake model's Update
-// method.
-func (f *fakeModel) Msgs() []tea.Msg {
-	return f.msgs
 }
