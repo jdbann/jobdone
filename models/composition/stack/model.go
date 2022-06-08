@@ -14,7 +14,8 @@ type Stack struct {
 }
 
 type Slot struct {
-	Model tea.Model
+	Model     tea.Model
+	FixedSize bool
 }
 
 type Params struct {
