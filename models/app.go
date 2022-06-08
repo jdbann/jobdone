@@ -2,7 +2,11 @@ package models
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"go.uber.org/zap"
+	"jobdone.emailaddress.horse/models/composition/box"
+	"jobdone.emailaddress.horse/models/composition/stack"
+	"jobdone.emailaddress.horse/utils/colors"
 )
 
 var _ tea.Model = App{}
@@ -31,8 +35,15 @@ func NewApp(params AppParams) App {
 	logger := params.Logger.Named("App")
 
 	if params.Healthcheck == nil {
-		params.Healthcheck = NewHealthcheck(HealthcheckParams{
-			Logger: logger,
+		params.Healthcheck = stack.New(stack.Params{
+			Slots: []stack.Slot{
+				stack.FlexiSlot(box.New(box.Params{
+					Style: lipgloss.NewStyle().Background(colors.Indigo1),
+				})),
+				stack.FixedSlot(NewHealthcheck(HealthcheckParams{
+					Logger: logger,
+				})),
+			},
 		})
 	}
 
