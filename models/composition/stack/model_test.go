@@ -25,26 +25,18 @@ func TestUpdate(t *testing.T) {
 	}{
 		{
 			name:               "nil messages are skipped",
-			slotModelsOptions:  [][]teast.FakeModelOption{{}, {}},
+			slotModelsOptions:  [][]teast.FakeModelOption{{}},
 			msg:                nil,
 			wantCmd:            nil,
 			wantView:           "",
-			wantSlotModelsMsgs: [][]tea.Msg{{}, {}},
-		},
-		{
-			name:               "window resize adjusts view sizing",
-			slotModelsOptions:  [][]teast.FakeModelOption{},
-			msg:                tea.WindowSizeMsg{Height: 2, Width: 2},
-			wantCmd:            nil,
-			wantView:           "  \n  ",
-			wantSlotModelsMsgs: [][]tea.Msg{},
+			wantSlotModelsMsgs: [][]tea.Msg{{}},
 		},
 		{
 			name:              "window resize passes distributed sizes to slot models",
 			slotModelsOptions: [][]teast.FakeModelOption{{}, {}, {}},
 			msg:               tea.WindowSizeMsg{Height: 4, Width: 2},
 			wantCmd:           nil,
-			wantView:          "  \n  \n  \n  ",
+			wantView:          "\n\n",
 			wantSlotModelsMsgs: [][]tea.Msg{
 				{tea.WindowSizeMsg{Height: 1, Width: 2}},
 				{tea.WindowSizeMsg{Height: 2, Width: 2}},
@@ -76,4 +68,17 @@ func TestUpdate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestView(t *testing.T) {
+	m := stack.New(stack.Params{
+		Slots: []stack.Slot{
+			{Model: teast.NewFakeModel(teast.ViewReturns("Slot 1 View"))},
+			{Model: teast.NewFakeModel(teast.ViewReturns("Slot 2 View"))},
+		},
+	})
+	wantView := "" +
+		"Slot 1 View\n" +
+		"Slot 2 View"
+	teast.AssertViewsEqual(t, wantView, m.View())
 }
