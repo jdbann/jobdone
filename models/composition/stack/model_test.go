@@ -9,9 +9,14 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	m := stack.New(stack.Params{})
+	m := stack.New(stack.Params{
+		Slots: []stack.Slot{
+			stack.FlexiSlot(teast.NewFakeModel(t, teast.InitReturns(teast.FakeCmd("slot one")))),
+			stack.FlexiSlot(teast.NewFakeModel(t, teast.InitReturns(teast.FakeCmd("slot two")))),
+		},
+	})
 	cmd := m.Init()
-	teast.AssertCmdsEqual(t, nil, cmd)
+	teast.AssertCmdsEqual(t, tea.Batch(teast.FakeCmd("slot one"), teast.FakeCmd("slot two")), cmd)
 }
 
 func TestUpdate(t *testing.T) {
@@ -56,6 +61,19 @@ func TestUpdate(t *testing.T) {
 			msg:      tea.WindowSizeMsg{Height: 7, Width: 2},
 			wantCmd:  nil,
 			wantView: "              \none fixed line\n              ",
+		},
+		{
+			name: "messages are passed to slot models and commands returned",
+			params: stack.Params{
+				Slots: []stack.Slot{
+					stack.FlexiSlot(teast.NewFakeModel(t, teast.ExpectMessages(teast.FakeMsg{}), teast.UpdateReturns(teast.FakeCmd("slot one")))),
+					stack.FixedSlot(teast.NewFakeModel(t, teast.ExpectMessages(teast.FakeMsg{}), teast.UpdateReturns(teast.FakeCmd("slot two")))),
+					stack.FlexiSlot(teast.NewFakeModel(t, teast.ExpectMessages(teast.FakeMsg{}), teast.UpdateReturns(teast.FakeCmd("slot three")))),
+				},
+			},
+			msg:      teast.FakeMsg{},
+			wantCmd:  tea.Batch(teast.FakeCmd("slot one"), teast.FakeCmd("slot two"), teast.FakeCmd("slot three")),
+			wantView: "\n\n",
 		},
 	}
 
