@@ -24,10 +24,21 @@ func New(params Params) tea.Model {
 }
 
 func (m Stack) Init() tea.Cmd {
-	return nil
+	var slotCmds []tea.Cmd
+
+	for _, slot := range m.slots {
+		cmd := slot.model.Init()
+		slotCmds = append(slotCmds, cmd)
+	}
+
+	return tea.Batch(slotCmds...)
 }
 
 func (m Stack) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if msg == nil {
+		return m, nil
+	}
+
 	var cmd tea.Cmd
 	var slotCmds []tea.Cmd
 
@@ -62,7 +73,12 @@ func (m Stack) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(slotCmds...)
 	}
 
-	return m, nil
+	for i, slot := range m.slots {
+		m.slots[i].model, cmd = slot.model.Update(msg)
+		slotCmds = append(slotCmds, cmd)
+	}
+
+	return m, tea.Batch(slotCmds...)
 }
 
 func (m Stack) View() string {
