@@ -10,8 +10,7 @@ import (
 var _ tea.Model = Stack{}
 
 type Stack struct {
-	height, width int
-	slots         []Slot
+	slots []Slot
 }
 
 type Slot struct {
@@ -38,8 +37,6 @@ func (m Stack) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		m.height, m.width = msg.Height, msg.Width
-
 		remainingSlots, remainingHeight := float64(len(m.slots)), float64(msg.Height)
 		for i, slot := range m.slots {
 			slotHeight := int(math.Round(remainingHeight / remainingSlots))
@@ -56,5 +53,9 @@ func (m Stack) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Stack) View() string {
-	return lipgloss.NewStyle().Height(m.height).Width(m.width).Render("")
+	var views []string
+	for _, slot := range m.slots {
+		views = append(views, slot.Model.View())
+	}
+	return lipgloss.JoinVertical(lipgloss.Left, views...)
 }
