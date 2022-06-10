@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"jobdone.emailaddress.horse/utils/colors"
+	"jobdone.emailaddress.horse/utils/logger"
 )
 
 const (
@@ -75,7 +76,7 @@ func (s Splash) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		s.logger.Debug(
 			"Received window resize message",
-			zap.Object("tea.Msg", windowSizeMsg(msg)),
+			zap.Object("tea.Msg", logger.WindowSizeMsg(msg)),
 		)
 		s.height, s.width = msg.Height, msg.Width
 	}

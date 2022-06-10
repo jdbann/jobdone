@@ -7,6 +7,7 @@ import (
 	"jobdone.emailaddress.horse/models/composition/box"
 	"jobdone.emailaddress.horse/models/composition/stack"
 	"jobdone.emailaddress.horse/utils/colors"
+	"jobdone.emailaddress.horse/utils/logger"
 )
 
 var _ tea.Model = App{}
@@ -38,12 +39,14 @@ func NewApp(params AppParams) App {
 		params.Healthcheck = stack.New(stack.Params{
 			Slots: []stack.Slot{
 				stack.FlexiSlot(box.New(box.Params{
-					Style: lipgloss.NewStyle().Background(colors.Indigo1),
+					Style:  lipgloss.NewStyle().Background(colors.Indigo1),
+					Logger: logger.Named("Stack"),
 				})),
 				stack.FixedSlot(NewHealthcheck(HealthcheckParams{
-					Logger: logger,
+					Logger: logger.Named("Stack"),
 				})),
 			},
+			Logger: logger,
 		})
 	}
 
@@ -83,7 +86,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			a.logger.Debug(
 				"Received quit message",
-				zap.Object("tea.Msg", keyMsg(msg)),
+				zap.Object("tea.Msg", logger.KeyMsg(msg)),
 			)
 			return a, tea.Quit
 		}

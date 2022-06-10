@@ -1,4 +1,4 @@
-package models
+package logger
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
@@ -7,9 +7,9 @@ import (
 
 // keyMsg is a wrapper for tea.KeyMsg to satisfy the zapcore.ObjectMarshaler
 // interface so it can be logged with `zap.Object("tea.Msg", keyMsg(msg))`.
-type keyMsg tea.KeyMsg
+type KeyMsg tea.KeyMsg
 
-func (m keyMsg) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+func (m KeyMsg) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("type", "tea.KeyMsg")
 	enc.OpenNamespace("data")
 	enc.AddString("keyType", m.Type.String())
@@ -18,12 +18,12 @@ func (m keyMsg) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	return nil
 }
 
-// windowSizeMsg is a wrapper for tea.WindowSizeMsg to satisfy the
+// WindowSizeMsg is a wrapper for tea.WindowSizeMsg to satisfy the
 // zapcore.ObjectMarshaler interface so it can be logged with
-// `zap.Object("tea.Msg", windowSizeMsg(msg))`.
-type windowSizeMsg tea.WindowSizeMsg
+// `zap.Object("tea.Msg", WindowSizeMsg(msg))`.
+type WindowSizeMsg tea.WindowSizeMsg
 
-func (m windowSizeMsg) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+func (m WindowSizeMsg) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("type", "tea.WindowSizeMsg")
 	enc.OpenNamespace("data")
 	enc.AddInt("width", m.Width)
