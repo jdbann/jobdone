@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"jobdone.emailaddress.horse/utils/colors"
+	"jobdone.emailaddress.horse/utils/logger"
 )
 
 var _ tea.Model = Healthcheck{}
@@ -72,7 +73,7 @@ func (h Healthcheck) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		h.logger.Debug(
 			"Received window resize message",
-			zap.Object("tea.Msg", windowSizeMsg(msg)),
+			zap.Object("tea.Msg", logger.WindowSizeMsg(msg)),
 		)
 
 		h.width = msg.Width
