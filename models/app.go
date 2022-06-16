@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"go.uber.org/zap"
+	"jobdone.emailaddress.horse/models/challenge"
 	"jobdone.emailaddress.horse/models/composition/box"
 	"jobdone.emailaddress.horse/models/composition/stack"
 	"jobdone.emailaddress.horse/utils/colors"
@@ -15,15 +16,15 @@ var _ tea.Model = App{}
 type App struct {
 	showSplash bool
 
-	healthcheck tea.Model
-	splash      tea.Model
+	challenge tea.Model
+	splash    tea.Model
 
 	logger *zap.Logger
 }
 
 type AppParams struct {
-	Healthcheck tea.Model
-	Splash      tea.Model
+	Challenge tea.Model
+	Splash    tea.Model
 
 	Logger *zap.Logger
 }
@@ -35,11 +36,19 @@ func NewApp(params AppParams) App {
 
 	logger := params.Logger.Named("App")
 
-	if params.Healthcheck == nil {
-		params.Healthcheck = stack.New(stack.Params{
+	if params.Challenge == nil {
+		params.Challenge = stack.New(stack.Params{
 			Slots: []stack.Slot{
 				stack.FlexiSlot(box.New(box.Params{
-					Style:  lipgloss.NewStyle().Background(colors.Indigo1),
+					Model: challenge.New(challenge.Params{
+						Logger: logger.Named("Stack").Named("Slot"),
+					}),
+					Style: lipgloss.NewStyle().
+						Background(colors.Indigo1).
+						Border(lipgloss.NormalBorder(), true).
+						BorderForeground(colors.Indigo6).
+						BorderBackground(colors.Indigo1).
+						Padding(0, 1),
 					Logger: logger.Named("Stack"),
 				})),
 				stack.FixedSlot(NewHealthcheck(HealthcheckParams{
@@ -59,8 +68,8 @@ func NewApp(params AppParams) App {
 	return App{
 		showSplash: true,
 
-		healthcheck: params.Healthcheck,
-		splash:      params.Splash,
+		challenge: params.Challenge,
+		splash:    params.Splash,
 
 		logger: logger,
 	}
@@ -69,7 +78,7 @@ func NewApp(params AppParams) App {
 func (a App) Init() tea.Cmd {
 	a.logger.Debug("Initialised")
 	return tea.Batch(
-		a.healthcheck.Init(),
+		a.challenge.Init(),
 		a.splash.Init(),
 	)
 }
@@ -101,7 +110,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Pass message to nested models
 	var cmd tea.Cmd
-	a.healthcheck, cmd = a.healthcheck.Update(msg)
+	a.challenge, cmd = a.challenge.Update(msg)
 
 	if a.showSplash {
 		var splashCmd tea.Cmd
@@ -117,5 +126,5 @@ func (a App) View() string {
 		return a.splash.View()
 	}
 
-	return a.healthcheck.View()
+	return a.challenge.View()
 }
