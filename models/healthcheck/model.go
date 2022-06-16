@@ -1,4 +1,4 @@
-package models
+package healthcheck
 
 import (
 	"net/http"
@@ -7,7 +7,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"jobdone.emailaddress.horse/utils/colors"
 	"jobdone.emailaddress.horse/utils/logger"
 )
@@ -16,12 +15,6 @@ var _ tea.Model = Healthcheck{}
 
 type healthcheckPerformer interface {
 	Healthcheck() (*http.Response, error)
-}
-
-type HealthcheckClient struct{}
-
-func (c HealthcheckClient) Healthcheck() (*http.Response, error) {
-	return http.Get("http://localhost:3000/health")
 }
 
 type Healthcheck struct {
@@ -33,20 +26,20 @@ type Healthcheck struct {
 	logger *zap.Logger
 }
 
-type HealthcheckParams struct {
+type Params struct {
 	CheckFrequency time.Duration
 	Client         healthcheckPerformer
 
 	Logger *zap.Logger
 }
 
-func NewHealthcheck(params HealthcheckParams) Healthcheck {
+func New(params Params) Healthcheck {
 	if params.CheckFrequency == 0 {
 		params.CheckFrequency = time.Second * 5
 	}
 
 	if params.Client == nil {
-		params.Client = HealthcheckClient{}
+		params.Client = Client{}
 	}
 
 	if params.Logger == nil {
@@ -65,7 +58,7 @@ func NewHealthcheck(params HealthcheckParams) Healthcheck {
 
 func (h Healthcheck) Init() tea.Cmd {
 	h.logger.Debug("Initialised")
-	return func() tea.Msg { return CheckHealthCmd(h.client)(time.Now()) }
+	return func() tea.Msg { return CheckCmd(h.client)(time.Now()) }
 }
 
 func (h Healthcheck) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -78,14 +71,14 @@ func (h Healthcheck) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		h.width = msg.Width
 
-	case HealthcheckResponseMsg:
+	case ResponseMsg:
 		h.logger.Debug(
 			"Received healthcheck response message",
 			zap.Object("tea.Msg", msg),
 		)
 
 		h.healthy = msg.StatusCode == http.StatusOK
-		return h, tea.Tick(h.checkFrequency, CheckHealthCmd(h.client))
+		return h, tea.Tick(h.checkFrequency, CheckCmd(h.client))
 	}
 
 	return h, nil
@@ -114,38 +107,4 @@ func (h Healthcheck) View() string {
 	}
 
 	return lipgloss.PlaceHorizontal(h.width, lipgloss.Left, statusMsg, whitespaceOptions...)
-}
-
-func CheckHealthCmd(client healthcheckPerformer) func(_ time.Time) tea.Msg {
-	return func(_ time.Time) tea.Msg {
-		res, err := client.Healthcheck()
-		if err != nil {
-			return HealthcheckResponseMsg{
-				Err: err,
-			}
-		}
-
-		return HealthcheckResponseMsg{
-			StatusCode: res.StatusCode,
-		}
-	}
-}
-
-type HealthcheckResponseMsg struct {
-	StatusCode int
-	Err        error
-}
-
-func (m HealthcheckResponseMsg) MarshalLogObject(enc zapcore.ObjectEncoder) error {
-	enc.AddString("type", "HealthcheckResponseMsg")
-	enc.OpenNamespace("data")
-	enc.AddInt("statusCode", m.StatusCode)
-
-	if m.Err != nil {
-		enc.AddString("err", m.Err.Error())
-	} else {
-		enc.AddString("err", "")
-	}
-
-	return nil
 }

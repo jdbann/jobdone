@@ -28,7 +28,7 @@ func CmdsEqual(a, b tea.Cmd) bool {
 	}
 
 	// Check if the messages match
-	return aMsg == bMsg
+	return reflect.DeepEqual(aMsg, bMsg)
 }
 
 var cmdType = reflect.TypeOf(tea.Cmd(func() tea.Msg { return nil }))

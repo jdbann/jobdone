@@ -1,4 +1,4 @@
-package models_test
+package healthcheck_test
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"jobdone.emailaddress.horse/models"
+	"jobdone.emailaddress.horse/models/healthcheck"
 	"jobdone.emailaddress.horse/pkg/teast"
 )
 
@@ -25,13 +25,13 @@ func (f fakeHealthcheckPerformer) Healthcheck() (*http.Response, error) {
 func TestHealthcheck_Init(t *testing.T) {
 	client := fakeHealthcheckPerformer{}
 
-	healthcheck := models.NewHealthcheck(models.HealthcheckParams{
+	m := healthcheck.New(healthcheck.Params{
 		Client: client,
 	})
 
-	cmd := healthcheck.Init()
+	cmd := m.Init()
 
-	teast.AssertCmdsEqual(t, func() tea.Msg { return models.CheckHealthCmd(client)(time.Now()) }, cmd)
+	teast.AssertCmdsEqual(t, func() tea.Msg { return healthcheck.CheckCmd(client)(time.Now()) }, cmd)
 }
 
 func TestHealthcheck_Update(t *testing.T) {
@@ -51,21 +51,21 @@ func TestHealthcheck_Update(t *testing.T) {
 		},
 		{
 			name:     "successful response message sets as healthy",
-			msg:      models.HealthcheckResponseMsg{StatusCode: http.StatusOK},
-			wantCmd:  tea.Tick(0, models.CheckHealthCmd(fakeHealthcheckPerformer{})),
+			msg:      healthcheck.ResponseMsg{StatusCode: http.StatusOK},
+			wantCmd:  tea.Tick(0, healthcheck.CheckCmd(fakeHealthcheckPerformer{})),
 			wantView: " ●  Server connection healthy ",
 		},
 		{
 			name:     "successful response message sets as healthy",
-			msg:      models.HealthcheckResponseMsg{Err: errors.New("fake error")},
-			wantCmd:  tea.Tick(0, models.CheckHealthCmd(fakeHealthcheckPerformer{})),
+			msg:      healthcheck.ResponseMsg{Err: errors.New("fake error")},
+			wantCmd:  tea.Tick(0, healthcheck.CheckCmd(fakeHealthcheckPerformer{})),
 			wantView: " ◌  Error with server connection ",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			healthcheck := models.NewHealthcheck(models.HealthcheckParams{
+			healthcheck := healthcheck.New(healthcheck.Params{
 				CheckFrequency: time.Nanosecond * 1,
 				Client:         tt.client,
 			})
@@ -86,18 +86,18 @@ func TestCheckHealthCmd(t *testing.T) {
 		{
 			name:    "successful healthcheck",
 			client:  fakeHealthcheckPerformer{statusCode: http.StatusOK},
-			wantMsg: models.HealthcheckResponseMsg{StatusCode: http.StatusOK},
+			wantMsg: healthcheck.ResponseMsg{StatusCode: http.StatusOK},
 		},
 		{
 			name:    "failed healthcheck",
 			client:  fakeHealthcheckPerformer{err: fakeHealthcheckError},
-			wantMsg: models.HealthcheckResponseMsg{Err: fakeHealthcheckError},
+			wantMsg: healthcheck.ResponseMsg{Err: fakeHealthcheckError},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			msg := models.CheckHealthCmd(tt.client)(time.Now())
+			msg := healthcheck.CheckCmd(tt.client)(time.Now())
 
 			teast.AssertMsgEqual(t, tt.wantMsg, msg)
 		})
