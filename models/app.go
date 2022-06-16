@@ -7,6 +7,7 @@ import (
 	"jobdone.emailaddress.horse/models/challenge"
 	"jobdone.emailaddress.horse/models/composition/box"
 	"jobdone.emailaddress.horse/models/composition/stack"
+	"jobdone.emailaddress.horse/models/healthcheck"
 	"jobdone.emailaddress.horse/utils/colors"
 	"jobdone.emailaddress.horse/utils/logger"
 )
@@ -51,7 +52,7 @@ func NewApp(params AppParams) App {
 						Padding(0, 1),
 					Logger: logger.Named("Stack"),
 				})),
-				stack.FixedSlot(NewHealthcheck(HealthcheckParams{
+				stack.FixedSlot(healthcheck.New(healthcheck.Params{
 					Logger: logger.Named("Stack"),
 				})),
 			},

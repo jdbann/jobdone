@@ -1,7 +1,7 @@
 package challenge
 
 import (
-	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"go.uber.org/zap"
@@ -25,6 +25,8 @@ type Challenge struct {
 }
 
 type Params struct {
+	Challenge Definition
+
 	Renderer renderer
 
 	Logger *zap.Logger
@@ -46,6 +48,8 @@ func New(params Params) tea.Model {
 	}
 
 	return Challenge{
+		challenge: params.Challenge,
+
 		renderer: params.Renderer,
 
 		logger: params.Logger,
@@ -73,6 +77,11 @@ func (m Challenge) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			zap.Object("tea.Msg", msg),
 		)
 		m.challenge = msg.Challenge
+		return m, nil
+	}
+
+	for i, objective := range m.challenge.Objectives {
+		m.challenge.Objectives[i] = objective.Update(msg)
 	}
 
 	return m, nil
@@ -83,8 +92,13 @@ func (m Challenge) View() string {
 		return "No active challenge."
 	}
 
-	content := fmt.Sprintf("# Challenge #%d: %s\n---\n%s", m.challenge.Number, m.challenge.Title, m.challenge.Description)
-	styledContent, err := m.renderer.Render(content)
+	var content strings.Builder
+	err := mdTemplate.ExecuteTemplate(&content, "challenge", m.challenge)
+	if err != nil {
+		panic(err)
+	}
+
+	styledContent, err := m.renderer.Render(content.String())
 	if err != nil {
 		panic(err)
 	}
