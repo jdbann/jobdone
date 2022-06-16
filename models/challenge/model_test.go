@@ -10,7 +10,7 @@ import (
 
 func TestInit(t *testing.T) {
 	m := challenge.New(challenge.Params{})
-	teast.AssertCmdsEqual(t, nil, m.Init())
+	teast.AssertCmdsEqual(t, challenge.SwitchCmd(challenge.Challenge1), m.Init())
 }
 
 func TestUpdate(t *testing.T) {
@@ -29,13 +29,15 @@ func TestUpdate(t *testing.T) {
 		{
 			name: "challenge changed message sets view",
 			msg: challenge.ChangedMsg{
-				Number:      999,
-				Title:       "Test Challenge",
-				Description: "A test challenge.",
+				Challenge: challenge.Definition{
+					Number:      999,
+					Title:       "Test Challenge",
+					Description: "A test challenge.",
+				},
 			},
 			wantCmd: nil,
 			wantView: `Challenge #999: Test Challenge
-
+--------
 A test challenge.`,
 		},
 	}
@@ -45,7 +47,7 @@ A test challenge.`,
 			m := challenge.New(challenge.Params{})
 			m, cmd := m.Update(tt.msg)
 
-			teast.AssertViewsEqual(t, tt.wantView, m.View())
+			teast.AssertViewsContentEqual(t, tt.wantView, m.View())
 			teast.AssertCmdsEqual(t, tt.wantCmd, cmd)
 		})
 	}

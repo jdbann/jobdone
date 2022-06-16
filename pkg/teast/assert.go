@@ -14,6 +14,14 @@ func AssertViewsEqual(t *testing.T, a, b string) {
 	}
 }
 
+func AssertViewsContentEqual(t *testing.T, a, b string) {
+	t.Helper()
+	a, b = SquashWhitespace(StripAnsiCodes(a)), SquashWhitespace(StripAnsiCodes(b))
+	if a != b {
+		t.Errorf("\nExpected: %q\nGot:      %q", a, b)
+	}
+}
+
 func AssertCmdsEqual(t *testing.T, a, b tea.Cmd) {
 	t.Helper()
 	if !CmdsEqual(a, b) {

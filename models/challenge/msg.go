@@ -3,16 +3,12 @@ package challenge
 import "go.uber.org/zap/zapcore"
 
 type ChangedMsg struct {
-	Number      int
-	Title       string
-	Description string
+	Challenge Definition
 }
 
 func (m ChangedMsg) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("type", "challenge.ChangedMsg")
 	enc.OpenNamespace("data")
-	enc.AddInt("Number", m.Number)
-	enc.AddString("Title", m.Title)
-	enc.AddString("Description", m.Description)
+	enc.AddObject("Challenge", m.Challenge)
 	return nil
 }
