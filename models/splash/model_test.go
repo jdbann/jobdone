@@ -1,22 +1,22 @@
-package models_test
+package splash_test
 
 import (
 	"testing"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"jobdone.emailaddress.horse/models"
+	"jobdone.emailaddress.horse/models/splash"
 	"jobdone.emailaddress.horse/pkg/teast"
 )
 
 func TestSplash_Init(t *testing.T) {
-	splash := models.NewSplash(models.SplashParams{
+	model := splash.New(splash.Params{
 		Duration: time.Nanosecond * 1,
 	})
 
-	cmd := splash.Init()
+	cmd := model.Init()
 
-	teast.AssertCmdsEqual(t, models.DismissSplashCmd(0), cmd)
+	teast.AssertCmdsEqual(t, tea.Batch(splash.DismissCmd(0), splash.AnimateCmd()), cmd)
 }
 
 func TestSplash_Update(t *testing.T) {
@@ -48,10 +48,10 @@ func TestSplash_Update(t *testing.T) {
 				"          \n" +
 				"          \n" +
 				"          \n" +
-				"  Title   \n" +
+				"Title     \n" +
 				"          \n" +
 				"          \n" +
-				" Subtitle \n" +
+				"  Subtitle\n" +
 				"          \n" +
 				"          \n" +
 				"          ",
@@ -60,7 +60,7 @@ func TestSplash_Update(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			splash := models.NewSplash(models.SplashParams{Title: "Title", Subtitle: "Subtitle"})
+			splash := splash.New(splash.Params{Title: "Title", Subtitle: "Subtitle"})
 			updatedSplash, cmd := splash.Update(tt.msg)
 
 			teast.AssertViewsEqual(t, tt.wantView, updatedSplash.View())

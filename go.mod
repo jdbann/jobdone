@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/charmbracelet/bubbletea v0.20.0
 	github.com/charmbracelet/glamour v0.5.0
+	github.com/charmbracelet/harmonica v0.2.0
 	github.com/charmbracelet/lipgloss v0.5.0
 	go.uber.org/zap v1.21.0
 )
