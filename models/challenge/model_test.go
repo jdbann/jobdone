@@ -48,6 +48,7 @@ func TestUpdate(t *testing.T) {
 			wantView: `Challenge #999: Test Challenge
 --------
 A test challenge.
+## Objectives
 [ ] A test objective`,
 		},
 		{
@@ -72,6 +73,7 @@ A test challenge.
 			wantView: `Challenge #999: Test Challenge
 --------
 A test challenge.
+## Objectives
 [✓] A test objective`,
 		},
 	}
