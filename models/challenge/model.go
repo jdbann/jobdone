@@ -103,5 +103,9 @@ func (m Challenge) View() string {
 		panic(err)
 	}
 
+	for _, objective := range m.challenge.Objectives {
+		styledContent = styledContent + "\n" + objective.View()
+	}
+
 	return styledContent
 }
