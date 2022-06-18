@@ -5,6 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"jobdone.emailaddress.horse/models"
+	"jobdone.emailaddress.horse/models/splash"
 	"jobdone.emailaddress.horse/pkg/teast"
 )
 
@@ -61,10 +62,10 @@ func TestApp_Update(t *testing.T) {
 			name: "splash complete switches to challenge",
 			challengeOptions: []teast.FakeModelOption{
 				teast.ViewReturns("Fake Challenge"),
-				teast.ExpectMessages(models.SplashCompleteMsg{}),
+				teast.ExpectMessages(splash.CompleteMsg{}),
 			},
 			splashOptions: []teast.FakeModelOption{teast.ViewReturns("Fake Splash")},
-			msg:           models.SplashCompleteMsg{},
+			msg:           splash.CompleteMsg{},
 			wantCmd:       nil,
 			wantView:      "Fake Challenge",
 		},

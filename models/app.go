@@ -8,6 +8,7 @@ import (
 	"jobdone.emailaddress.horse/models/composition/box"
 	"jobdone.emailaddress.horse/models/composition/stack"
 	"jobdone.emailaddress.horse/models/healthcheck"
+	"jobdone.emailaddress.horse/models/splash"
 	"jobdone.emailaddress.horse/utils/colors"
 	"jobdone.emailaddress.horse/utils/logger"
 )
@@ -61,7 +62,7 @@ func NewApp(params AppParams) App {
 	}
 
 	if params.Splash == nil {
-		params.Splash = NewSplash(SplashParams{
+		params.Splash = splash.New(splash.Params{
 			Logger: logger,
 		})
 	}
@@ -101,7 +102,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return a, tea.Quit
 		}
 
-	case SplashCompleteMsg:
+	case splash.CompleteMsg:
 		a.showSplash = false
 		a.logger.Debug(
 			"Received splash complete message",
