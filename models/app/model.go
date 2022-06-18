@@ -1,4 +1,4 @@
-package models
+package app
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
@@ -24,14 +24,14 @@ type App struct {
 	logger *zap.Logger
 }
 
-type AppParams struct {
+type Params struct {
 	Challenge tea.Model
 	Splash    tea.Model
 
 	Logger *zap.Logger
 }
 
-func NewApp(params AppParams) App {
+func New(params Params) App {
 	if params.Logger == nil {
 		params.Logger = zap.NewNop()
 	}

@@ -4,7 +4,7 @@ import (
 	"flag"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"jobdone.emailaddress.horse/models"
+	"jobdone.emailaddress.horse/models/app"
 	"jobdone.emailaddress.horse/utils/logger"
 )
 
@@ -26,7 +26,7 @@ func Start(args []string) error {
 
 	logger.Debug("Launching...")
 
-	app := models.NewApp(models.AppParams{
+	app := app.New(app.Params{
 		Logger: logger,
 	})
 
