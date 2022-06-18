@@ -1,21 +1,21 @@
-package models_test
+package app_test
 
 import (
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"jobdone.emailaddress.horse/models"
+	"jobdone.emailaddress.horse/models/app"
 	"jobdone.emailaddress.horse/models/splash"
 	"jobdone.emailaddress.horse/pkg/teast"
 )
 
 func TestApp_Init(t *testing.T) {
-	app := models.NewApp(models.AppParams{
+	model := app.New(app.Params{
 		Challenge: teast.NewFakeModel(t, teast.InitReturns(teast.FakeCmd("Challenge init"))),
 		Splash:    teast.NewFakeModel(t, teast.InitReturns(teast.FakeCmd("Splash init"))),
 	})
 
-	cmd := app.Init()
+	cmd := model.Init()
 
 	teast.AssertCmdsEqual(t, tea.Batch(teast.FakeCmd("Challenge init"), teast.FakeCmd("Splash init")), cmd)
 }
@@ -91,11 +91,11 @@ func TestApp_Update(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			fakeChallenge := teast.NewFakeModel(t, tt.challengeOptions...)
 			fakeSplash := teast.NewFakeModel(t, tt.splashOptions...)
-			app := models.NewApp(models.AppParams{
+			model := app.New(app.Params{
 				Challenge: fakeChallenge,
 				Splash:    fakeSplash,
 			})
-			updatedApp, cmd := app.Update(tt.msg)
+			updatedApp, cmd := model.Update(tt.msg)
 
 			teast.AssertViewsEqual(t, tt.wantView, updatedApp.View())
 			teast.AssertCmdsEqual(t, tt.wantCmd, cmd)
