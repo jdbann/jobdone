@@ -4,7 +4,6 @@ import (
 	"math"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"go.uber.org/zap"
 	"jobdone.emailaddress.horse/utils/logger"
 )
@@ -12,7 +11,8 @@ import (
 var _ tea.Model = Stack{}
 
 type Stack struct {
-	slots []Slot
+	slots       []Slot
+	distributor distributor
 
 	logger *zap.Logger
 }
@@ -23,7 +23,7 @@ type Params struct {
 	Logger *zap.Logger
 }
 
-func New(params Params) tea.Model {
+func NewVertical(params Params) tea.Model {
 	if params.Logger == nil {
 		params.Logger = zap.NewNop()
 	}
@@ -31,7 +31,23 @@ func New(params Params) tea.Model {
 	logger := params.Logger.Named("Stack")
 
 	return Stack{
-		slots: params.Slots,
+		slots:       params.Slots,
+		distributor: HeightDistributor{},
+
+		logger: logger,
+	}
+}
+
+func NewHorizontal(params Params) tea.Model {
+	if params.Logger == nil {
+		params.Logger = zap.NewNop()
+	}
+
+	logger := params.Logger.Named("Stack")
+
+	return Stack{
+		slots:       params.Slots,
+		distributor: WidthDistributor{},
 
 		logger: logger,
 	}
@@ -63,17 +79,17 @@ func (m Stack) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			zap.Object("tea.Msg", logger.WindowSizeMsg(msg)),
 		)
 
-		remainingSlots, remainingHeight := float64(len(m.slots)), float64(msg.Height)
+		remainingSlots, remainingSize := float64(len(m.slots)), float64(m.distributor.availableSize(msg))
 
 		for i, slot := range m.slots {
 			if !slot.fixedSize {
 				continue
 			}
 
-			slotHeight := lipgloss.Height(slot.model.View())
-			m.slots[i].model, cmd = slot.model.Update(tea.WindowSizeMsg{Height: slotHeight, Width: msg.Width})
+			slotSize := m.distributor.slotSize(slot)
+			m.slots[i].model, cmd = m.distributor.updateSlot(msg, slot.model, slotSize)
 			remainingSlots--
-			remainingHeight -= float64(slotHeight)
+			remainingSize -= float64(slotSize)
 			slotCmds = append(slotCmds, cmd)
 		}
 
@@ -82,10 +98,10 @@ func (m Stack) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				continue
 			}
 
-			slotHeight := int(math.Round(remainingHeight / remainingSlots))
-			m.slots[i].model, cmd = slot.model.Update(tea.WindowSizeMsg{Height: slotHeight, Width: msg.Width})
+			slotSize := int(math.Round(remainingSize / remainingSlots))
+			m.slots[i].model, cmd = m.distributor.updateSlot(msg, slot.model, slotSize)
 			remainingSlots--
-			remainingHeight -= float64(slotHeight)
+			remainingSize -= float64(slotSize)
 			slotCmds = append(slotCmds, cmd)
 		}
 
@@ -105,5 +121,5 @@ func (m Stack) View() string {
 	for _, slot := range m.slots {
 		views = append(views, slot.model.View())
 	}
-	return lipgloss.JoinVertical(lipgloss.Left, views...)
+	return m.distributor.joinViews(views)
 }
