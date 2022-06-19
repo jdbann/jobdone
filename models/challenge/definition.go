@@ -1,12 +1,15 @@
 package challenge
 
 import (
+	"math/rand"
 	"net/http"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"go.uber.org/zap/zapcore"
 	"jobdone.emailaddress.horse/models/challenge/objective"
 	"jobdone.emailaddress.horse/models/healthcheck"
+	"jobdone.emailaddress.horse/models/world/entity"
+	"jobdone.emailaddress.horse/models/world/person"
 )
 
 type Definition struct {
@@ -15,6 +18,7 @@ type Definition struct {
 	Description         string
 	MapHeight, MapWidth int
 	Objectives          objective.Objectives
+	Entities            []entity.Builder
 	NextChallenge       *Definition
 }
 
@@ -37,6 +41,7 @@ var (
 		},
 		NextChallenge: &Challenge2,
 	}
+
 	Challenge2 = Definition{
 		Number:      2,
 		Title:       "Our First Assistant",
@@ -44,6 +49,10 @@ var (
 		MapHeight:   10,
 		MapWidth:    20,
 		Objectives:  []objective.Objective{},
+		Entities: []entity.Builder{
+			person.Builder(person.Params{X: rand.Intn(20), Y: rand.Intn(10)}),
+			person.Builder(person.Params{X: rand.Intn(20), Y: rand.Intn(10)}),
+		},
 	}
 )
 

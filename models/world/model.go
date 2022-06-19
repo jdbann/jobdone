@@ -1,28 +1,28 @@
 package world
 
 import (
-	"math/rand"
-	"strings"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"go.uber.org/zap"
 	"jobdone.emailaddress.horse/models/challenge"
+	"jobdone.emailaddress.horse/models/world/entity"
 	"jobdone.emailaddress.horse/utils/colors"
 	"jobdone.emailaddress.horse/utils/logger"
 )
 
+type mapRenderer interface {
+	Render(entity.Entities) string
+}
+
 type World struct {
-	height, width       int
-	mapHeight, mapWidth int
-	mapStr              string
+	height, width int
+	mapRenderer   mapRenderer
+	entities      entity.Entities
 
 	logger *zap.Logger
 }
 
 type Params struct {
-	MapHeight, MapWidth int
-
 	Logger *zap.Logger
 }
 
@@ -57,8 +57,11 @@ func (m World) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			zap.Object("tea.Msg", msg),
 		)
 
-		m.mapHeight, m.mapWidth = msg.Challenge.MapHeight, msg.Challenge.MapWidth
-		m.mapStr = fillMap(m)
+		m.mapRenderer = newMap(msg.Challenge.MapWidth, msg.Challenge.MapHeight)
+		m.entities = make(entity.Entities, len(msg.Challenge.Entities))
+		for i, builder := range msg.Challenge.Entities {
+			m.entities[i] = builder(m.logger)
+		}
 	}
 	return m, nil
 }
@@ -86,13 +89,11 @@ var (
 	mapStyle = lipgloss.NewStyle().
 			Border(lipgloss.NormalBorder(), true).
 			BorderForeground(colors.Green7).
-			BorderBackground(colors.Green3).
-			Foreground(colors.Green7).
-			Background(colors.Green3)
+			BorderBackground(colors.Green3)
 )
 
 func (m World) View() string {
-	if m.mapHeight == 0 || m.mapWidth == 0 {
+	if m.mapRenderer == nil {
 		return offlineStyle.Render(lipgloss.Place(
 			m.width-2,
 			m.height-2,
@@ -110,22 +111,7 @@ func (m World) View() string {
 		m.height-2,
 		lipgloss.Center,
 		lipgloss.Center,
-		mapStyle.Height(m.mapHeight).Width(m.mapWidth).Render(m.mapStr),
+		mapStyle.Render(m.mapRenderer.Render(m.entities)),
 		lipgloss.WithWhitespaceBackground(colors.Indigo1),
 	))
-}
-
-const mapChars = "..,,''``;:                             "
-
-func fillMap(m World) string {
-	var b strings.Builder
-	for y := 0; y < m.mapHeight; y++ {
-		for x := 0; x < m.mapWidth; x++ {
-			b.WriteByte(mapChars[rand.Intn(len(mapChars))])
-		}
-		if y != m.height-1 {
-			b.WriteRune('\n')
-		}
-	}
-	return b.String()
 }
