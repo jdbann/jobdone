@@ -10,10 +10,12 @@ import (
 )
 
 type Definition struct {
-	Number      int
-	Title       string
-	Description string
-	Objectives  objective.Objectives
+	Number              int
+	Title               string
+	Description         string
+	MapHeight, MapWidth int
+	Objectives          objective.Objectives
+	NextChallenge       *Definition
 }
 
 var (
@@ -33,6 +35,15 @@ var (
 				}),
 			}),
 		},
+		NextChallenge: &Challenge2,
+	}
+	Challenge2 = Definition{
+		Number:      2,
+		Title:       "Our First Assistant",
+		Description: "Let's get this done...",
+		MapHeight:   10,
+		MapWidth:    20,
+		Objectives:  []objective.Objective{},
 	}
 )
 

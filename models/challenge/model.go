@@ -2,10 +2,12 @@ package challenge
 
 import (
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"go.uber.org/zap"
+	"jobdone.emailaddress.horse/pkg/bub"
 	"jobdone.emailaddress.horse/pkg/glam"
 	"jobdone.emailaddress.horse/utils/logger"
 )
@@ -21,6 +23,7 @@ type Challenge struct {
 	challenge Definition
 	height    int
 	style     lipgloss.Style
+	complete  bool
 
 	renderer renderer
 
@@ -81,14 +84,33 @@ func (m Challenge) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			zap.Object("tea.Msg", msg),
 		)
 		m.challenge = msg.Challenge
+		m.complete = false
 		return m, nil
 	}
 
-	for i, objective := range m.challenge.Objectives {
-		m.challenge.Objectives[i] = objective.Update(msg)
+	if m.complete {
+		return m, nil
 	}
 
-	return m, nil
+	objectivesComplete := true
+	for i, objective := range m.challenge.Objectives {
+		m.challenge.Objectives[i] = objective.Update(msg)
+		if !m.challenge.Objectives[i].Complete() {
+			objectivesComplete = false
+		}
+	}
+
+	if !objectivesComplete {
+		return m, nil
+	}
+
+	m.complete = true
+
+	if m.challenge.NextChallenge == nil {
+		return m, nil
+	}
+
+	return m, tea.Sequentially(bub.Wait(time.Second*2), SwitchCmd(*m.challenge.NextChallenge))
 }
 
 func (m Challenge) View() string {
