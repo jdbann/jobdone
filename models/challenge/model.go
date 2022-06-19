@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"go.uber.org/zap"
 	"jobdone.emailaddress.horse/pkg/glam"
 	"jobdone.emailaddress.horse/utils/logger"
@@ -18,6 +19,8 @@ type renderer = interface {
 
 type Challenge struct {
 	challenge Definition
+	height    int
+	style     lipgloss.Style
 
 	renderer renderer
 
@@ -26,6 +29,7 @@ type Challenge struct {
 
 type Params struct {
 	Challenge Definition
+	Style     lipgloss.Style
 
 	Renderer renderer
 
@@ -49,6 +53,7 @@ func New(params Params) tea.Model {
 
 	return Challenge{
 		challenge: params.Challenge,
+		style:     params.Style.Copy(),
 
 		renderer: params.Renderer,
 
@@ -67,9 +72,8 @@ func (m Challenge) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			"Received window resize message",
 			zap.Object("tea.Msg", logger.WindowSizeMsg(msg)),
 		)
-		if msg.Width <= glam.MaxWidth {
-			m.renderer.SetWordWrap(msg.Width)
-		}
+		m.height = msg.Height
+		return m, nil
 
 	case ChangedMsg:
 		m.logger.Debug(
@@ -88,8 +92,12 @@ func (m Challenge) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Challenge) View() string {
+	sizedStyle := m.style.
+		Width(glam.MaxWidth + m.style.GetHorizontalPadding()).
+		Height(m.height - m.style.GetVerticalPadding())
+
 	if m.challenge.Number == 0 {
-		return "No active challenge."
+		return sizedStyle.Render("No active challenge.")
 	}
 
 	var content strings.Builder
@@ -107,5 +115,5 @@ func (m Challenge) View() string {
 		styledContent = styledContent + "\n" + objective.View()
 	}
 
-	return styledContent
+	return sizedStyle.Render(styledContent)
 }

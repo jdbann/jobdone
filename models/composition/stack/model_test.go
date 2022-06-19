@@ -9,7 +9,7 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	m := stack.New(stack.Params{
+	m := stack.NewVertical(stack.Params{
 		Slots: []stack.Slot{
 			stack.FlexiSlot(teast.NewFakeModel(t, teast.InitReturns(teast.FakeCmd("slot one")))),
 			stack.FlexiSlot(teast.NewFakeModel(t, teast.InitReturns(teast.FakeCmd("slot two")))),
@@ -87,7 +87,7 @@ func TestUpdate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			m := stack.New(tt.params(t))
+			m := stack.NewVertical(tt.params(t))
 			m, cmd := m.Update(tt.msg)
 
 			teast.AssertViewsEqual(t, tt.wantView, m.View())
@@ -97,7 +97,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestView(t *testing.T) {
-	m := stack.New(stack.Params{
+	m := stack.NewVertical(stack.Params{
 		Slots: []stack.Slot{
 			stack.FlexiSlot(teast.NewFakeModel(t, teast.ViewReturns("Slot 1 View"))),
 			stack.FlexiSlot(teast.NewFakeModel(t, teast.ViewReturns("Slot 2 View"))),

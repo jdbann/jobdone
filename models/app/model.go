@@ -5,10 +5,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"go.uber.org/zap"
 	"jobdone.emailaddress.horse/models/challenge"
-	"jobdone.emailaddress.horse/models/composition/box"
 	"jobdone.emailaddress.horse/models/composition/stack"
 	"jobdone.emailaddress.horse/models/healthcheck"
 	"jobdone.emailaddress.horse/models/splash"
+	"jobdone.emailaddress.horse/models/world"
 	"jobdone.emailaddress.horse/utils/colors"
 	"jobdone.emailaddress.horse/utils/logger"
 )
@@ -39,23 +39,33 @@ func New(params Params) App {
 	logger := params.Logger.Named("App")
 
 	if params.Challenge == nil {
-		params.Challenge = stack.New(stack.Params{
+		world := world.New(world.Params{
+			Logger: logger.Named("Stack").Named("Stack").Named("Slot"),
+		})
+		challenge := challenge.New(challenge.Params{
+			Style: lipgloss.NewStyle().
+				Border(lipgloss.NormalBorder(), true).
+				BorderForeground(colors.Indigo6).
+				BorderBackground(colors.Indigo1).
+				Background(colors.Indigo1).
+				Padding(1, 2),
+			Logger: logger.Named("Stack").Named("Stack").Named("Slot"),
+		})
+		worldChallengeStack := stack.NewHorizontal(stack.Params{
 			Slots: []stack.Slot{
-				stack.FlexiSlot(box.New(box.Params{
-					Model: challenge.New(challenge.Params{
-						Logger: logger.Named("Stack").Named("Slot"),
-					}),
-					Style: lipgloss.NewStyle().
-						Background(colors.Indigo1).
-						Border(lipgloss.NormalBorder(), true).
-						BorderForeground(colors.Indigo6).
-						BorderBackground(colors.Indigo1).
-						Padding(0, 1),
-					Logger: logger.Named("Stack"),
-				})),
-				stack.FixedSlot(healthcheck.New(healthcheck.Params{
-					Logger: logger.Named("Stack"),
-				})),
+				stack.FlexiSlot(world),
+				stack.FixedSlot(challenge),
+			},
+			Logger: logger.Named("Stack"),
+		})
+		healthcheck := healthcheck.New(healthcheck.Params{
+			Logger: logger.Named("Stack"),
+		})
+
+		params.Challenge = stack.NewVertical(stack.Params{
+			Slots: []stack.Slot{
+				stack.FlexiSlot(worldChallengeStack),
+				stack.FixedSlot(healthcheck),
 			},
 			Logger: logger,
 		})
