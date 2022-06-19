@@ -43,7 +43,7 @@ func (m ansiMap) Render(entities entity.Entities) string {
 			entity := entities.At(x, y)
 
 			if entity != nil {
-				b.WriteString(entity.View())
+				b.WriteString(entity.Render(grassStyle))
 				continue
 			}
 

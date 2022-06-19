@@ -2,11 +2,13 @@ package entity
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"go.uber.org/zap"
 )
 
 type Entity interface {
-	tea.Model
+	Update(tea.Msg) (Entity, tea.Cmd)
+	Render(baseStyle lipgloss.Style) string
 	Position() (x, y int)
 }
 

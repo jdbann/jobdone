@@ -17,7 +17,7 @@ var (
 	Indigo12 = lipgloss.AdaptiveColor{Light: "#101d46", Dark: "#eef1fd"}
 )
 
-var Indigo = scale{
+var Indigo = Scale{
 	Name: "Indigo",
 	Steps: []step{
 		{"Indigo1", Indigo1},

@@ -17,7 +17,7 @@ var (
 	Tomato12 = lipgloss.AdaptiveColor{Light: "#341711", Dark: "#feefec"}
 )
 
-var Tomato = scale{
+var Tomato = Scale{
 	Name: "Tomato",
 	Steps: []step{
 		{"Tomato1", Tomato1},

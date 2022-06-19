@@ -15,9 +15,10 @@ type mapRenderer interface {
 }
 
 type World struct {
-	height, width int
-	mapRenderer   mapRenderer
-	entities      entity.Entities
+	height, width       int
+	mapHeight, mapWidth int
+	mapRenderer         mapRenderer
+	entities            entity.Entities
 
 	logger *zap.Logger
 }
@@ -43,27 +44,45 @@ func (m World) Init() tea.Cmd {
 }
 
 func (m World) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmds []tea.Cmd
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.logger.Debug(
 			"Received window resize message",
 			zap.Object("tea.Msg", logger.WindowSizeMsg(msg)),
 		)
-
 		m.height, m.width = msg.Height, msg.Width
+		return m, nil
+
 	case challenge.ChangedMsg:
 		m.logger.Debug(
 			"Received challenge changed message",
 			zap.Object("tea.Msg", msg),
 		)
-
+		m.mapHeight, m.mapWidth = msg.Challenge.MapHeight, msg.Challenge.MapWidth
 		m.mapRenderer = newMap(msg.Challenge.MapWidth, msg.Challenge.MapHeight)
 		m.entities = make(entity.Entities, len(msg.Challenge.Entities))
 		for i, builder := range msg.Challenge.Entities {
 			m.entities[i] = builder(m.logger)
 		}
+		return m, entity.TickCmd(m.mapWidth, m.mapHeight)
+
+	case entity.TickMsg:
+		m.logger.Debug(
+			"Received world tick message",
+			zap.Object("tea.Msg", msg),
+		)
+		cmds = append(cmds, entity.TickCmd(m.mapWidth, m.mapHeight))
 	}
-	return m, nil
+
+	var cmd tea.Cmd
+	for i, entity := range m.entities {
+		m.entities[i], cmd = entity.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 var (
