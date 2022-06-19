@@ -40,7 +40,13 @@ func New(params Params) tea.Model {
 }
 
 func (m World) Init() tea.Cmd {
-	return nil
+	var cmds []tea.Cmd
+
+	for _, entity := range m.entities {
+		cmds = append(cmds, entity.Init())
+	}
+
+	return tea.Batch(cmds...)
 }
 
 func (m World) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -65,8 +71,10 @@ func (m World) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.entities = make(entity.Entities, len(msg.Challenge.Entities))
 		for i, builder := range msg.Challenge.Entities {
 			m.entities[i] = builder(m.logger)
+			cmds = append(cmds, m.entities[i].Init())
 		}
-		return m, entity.TickCmd(m.mapWidth, m.mapHeight)
+		cmds = append(cmds, entity.TickCmd(m.mapWidth, m.mapHeight))
+		return m, tea.Batch(cmds...)
 
 	case entity.TickMsg:
 		m.logger.Debug(

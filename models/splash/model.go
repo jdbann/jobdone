@@ -91,7 +91,7 @@ func (s Splash) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case TickMsg:
 		s.logger.Debug(
-			"Received window resize message",
+			"Received splash tick message",
 			zap.Object("tea.Msg", msg),
 		)
 		s.springPos, s.springVel = spring.Update(s.springPos, s.springVel, 0.5)

@@ -1,23 +1,31 @@
 package person
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"encoding/hex"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"go.uber.org/zap"
 	"jobdone.emailaddress.horse/models/world/entity"
+	"jobdone.emailaddress.horse/pkg/bub"
+	"jobdone.emailaddress.horse/pkg/client"
 )
 
 type Person struct {
-	x, y  int
-	style lipgloss.Style
+	x, y     int
+	style    lipgloss.Style
+	localID  string
+	remoteID string
+	client   registerPerformer
 
 	logger *zap.Logger
 }
 
 type Params struct {
-	X, Y int
+	X, Y   int
+	Client registerPerformer
 
 	Logger *zap.Logger
 }
@@ -29,10 +37,16 @@ func New(params Params) entity.Entity {
 
 	logger := params.Logger.Named("Person")
 
+	if params.Client == nil {
+		params.Client = client.New(client.Params{})
+	}
+
 	return Person{
-		x:     params.X,
-		y:     params.Y,
-		style: personStyle(nextColor()),
+		x:       params.X,
+		y:       params.Y,
+		style:   personStyle(nextColor()),
+		localID: generateLocalID(),
+		client:  params.Client,
 
 		logger: logger,
 	}
@@ -45,6 +59,10 @@ func Builder(params Params) entity.Builder {
 	}
 }
 
+func (m Person) Init() tea.Cmd {
+	return RegisterCmd(m.client, m.localID)
+}
+
 func (m Person) Update(msg tea.Msg) (entity.Entity, tea.Cmd) {
 	switch msg := msg.(type) {
 	case entity.TickMsg:
@@ -52,9 +70,29 @@ func (m Person) Update(msg tea.Msg) (entity.Entity, tea.Cmd) {
 			"Received world tick message",
 			zap.Object("tea.Msg", msg),
 		)
+		return randomStep(m, msg.Width, msg.Height), nil
 
-		m.x = constrain(0, msg.Width-1, m.x+randStep())
-		m.y = constrain(0, msg.Height-1, m.y+randStep())
+	case RegisterFailedMsg:
+		if msg.LocalID != m.localID {
+			return m, nil
+		}
+
+		m.logger.Debug(
+			"Received register failed message",
+			zap.Object("tea.Msg", msg),
+		)
+		return m, tea.Sequentially(bub.Wait(time.Second*2), RegisterCmd(m.client, m.localID))
+
+	case RegisterSucceededMsg:
+		if msg.LocalID != m.localID {
+			return m, nil
+		}
+
+		m.logger.Debug(
+			"Received register succeeded message",
+			zap.Object("tea.Msg", msg),
+		)
+		m.remoteID = msg.RemoteID
 	}
 
 	return m, nil
@@ -68,20 +106,13 @@ func (m Person) Position() (x int, y int) {
 	return m.x, m.y
 }
 
-var steps = []int{-1, 0, 0, 0, 1}
+func generateLocalID() string {
+	b := make([]byte, 12)
 
-func randStep() int {
-	return steps[rand.Intn(5)]
-}
-
-func constrain(min, max, val int) int {
-	if val < min {
-		return min
+	_, err := rand.Read(b)
+	if err != nil {
+		panic(err)
 	}
 
-	if val > max {
-		return max
-	}
-
-	return val
+	return hex.EncodeToString(b)
 }

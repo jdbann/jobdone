@@ -7,6 +7,7 @@ import (
 )
 
 type Entity interface {
+	Init() tea.Cmd
 	Update(tea.Msg) (Entity, tea.Cmd)
 	Render(baseStyle lipgloss.Style) string
 	Position() (x, y int)

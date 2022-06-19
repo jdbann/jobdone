@@ -7,6 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"go.uber.org/zap"
+	"jobdone.emailaddress.horse/pkg/client"
 	"jobdone.emailaddress.horse/utils/colors"
 	"jobdone.emailaddress.horse/utils/logger"
 )
@@ -39,7 +40,7 @@ func New(params Params) Healthcheck {
 	}
 
 	if params.Client == nil {
-		params.Client = Client{}
+		params.Client = client.New(client.Params{})
 	}
 
 	if params.Logger == nil {

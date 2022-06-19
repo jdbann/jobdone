@@ -48,7 +48,27 @@ var (
 		Description: "Let's get this done...",
 		MapHeight:   10,
 		MapWidth:    20,
-		Objectives:  []objective.Objective{},
+		Objectives: []objective.Objective{
+			objective.New(objective.Params{
+				Description: "Respond to the two register requests with an ID",
+				Verifier: objective.NewSimpleVerifier(func() func(msg tea.Msg) bool {
+					ids := make(map[string]string, 2)
+					return func(msg tea.Msg) bool {
+						rs, ok := msg.(person.RegisterSucceededMsg)
+						if !ok {
+							return false
+						}
+
+						ids[rs.LocalID] = rs.RemoteID
+						if len(ids) == 2 {
+							return true
+						}
+
+						return false
+					}
+				}()),
+			}),
+		},
 		Entities: []entity.Builder{
 			person.Builder(person.Params{X: rand.Intn(20), Y: rand.Intn(10)}),
 			person.Builder(person.Params{X: rand.Intn(20), Y: rand.Intn(10)}),
